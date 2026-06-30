@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كارت العضوية الرقمي</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="card animate-card">
+        <div class="card-header">
+            <h2>Barber Loyalty Card ✂️</h2>
+            <span class="badge">خصم 10% مفعّل</span>
+        </div>
+
+        <hr class="divider">
+
+        <!-- بيانات العميل -->
+        <div class="client-info">
+            <p><strong>الاسم:</strong> <span id="welcomeName"></span></p>
+            <p><strong>رقم الهاتف:</strong> <span id="welcomePhone"></span></p>
+        </div>
+
+        <!-- خانات الزيارات الـ 8 -->
+        <h3>عدد الحلقات المتبقية للهدية:</h3>
+        <div class="slots-grid">
+            <div class="slot" id="slot-1">1</div>
+            <div class="slot" id="slot-2">2</div>
+            <div class="slot" id="slot-3">3</div>
+            <div class="slot" id="slot-4">4</div>
+            <div class="slot" id="slot-5">5</div>
+            <div class="slot" id="slot-6">6</div>
+            <div class="slot" id="slot-7">7</div>
+            <div class="slot" id="slot-8">🎁</div>
+        </div>
+
+        <p class="note">🎁 بعد الحلقة الثامنة.. حلاقتك القادمة مجانية بالكامل!</p>
+    </div>
+
+  <script>
+    // قراءة هاتف العميل وحساب الحلاق التابع له
+    let currentPhone = localStorage.getItem("currentClientPhone");
+    let barberId = localStorage.getItem("currentClientBarber") || "default_barber";
+    
+    // قراءة القائمة الخاصة بالحلاق ده بالذات
+    let storageKey = `clients_${barberId}`;
+    let clients = JSON.parse(localStorage.getItem(storageKey)) || [];
+    
+    // البحث عن العميل
+    let currentClient = clients.find(c => c.phone === currentPhone) || { name: "زائر", phone: "بدون رقم", visits: 0, lastVisitDate: null };
+
+    document.getElementById("welcomeName").innerHTML = currentClient.name;
+    document.getElementById("welcomePhone").innerHTML = currentClient.phone;
+
+    let currentVisits = parseInt(currentClient.visits); 
+
+    for (let i = 1; i <= 8; i++) {
+        let slot = document.getElementById("slot-" + i);
+        if (i <= currentVisits) {
+            slot.classList.add("active");
+        }
+    }
+
+    // نظام التذكير (15 يوم)
+    if (currentClient.lastVisitDate) {
+        let lastDate = new Date(currentClient.lastVisitDate);
+        let today = new Date();
+        let timeDiff = today.getTime() - lastDate.getTime();
+        let daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+        
+        if (daysDiff >= 15) {
+            document.getElementById("reminderName").innerText = currentClient.name;
+            document.getElementById("reminder-bar").style.display = "block";
+        }
+    }
+
+    // زر الواتساب
+    let barberPhoneNumber = "201228322489"; 
+    let message = `أهلاً يا هندسة، أنا العميل ${currentClient.name} ومسجل في عضوية الصالون (رقم: ${currentClient.phone})، محتاج أحجز ميعاد للحلاقة الجاية لو سمحت.`;
+    document.getElementById("whatsapp-btn").href = "https://wa.me/" + barberPhoneNumber + "?text=" + encodeURIComponent(message);
+</script>
+</body>
+</html>

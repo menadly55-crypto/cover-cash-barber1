@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دخول الإدارة والتهيئة 🔐</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="card animate-card">
+        <h2 id="loginTitle">تسجيل دخول الحلاق 🔐</h2>
+        <p id="loginNote" class="note">برجاء إدخال بيانات الإدارة للوصول للوحة التحكم</p>
+        
+        <hr class="divider">
+
+        <div style="text-align: right;">
+            <!-- حقل كود التفعيل يظهر فقط في المرة الأولى لحفظ حقك المالي -->
+            <div id="activationArea" style="display: none;">
+                <label style="color: #d4af37; font-weight: bold;">🔑 كود تفعيل السيستم (يتم الحصول عليه من المطور م/مينا):</label>
+                <input type="text" id="activationKey" placeholder="أدخل كود التفعيل المعتمد">
+                <hr class="divider">
+            </div>
+
+            <label id="userLabel">اسم المستخدم:</label>
+            <input type="text" id="username" placeholder="أدخل اسم المستخدم">
+            
+            <label id="passLabel">كلمة المرور:</label>
+            <input type="password" id="password" placeholder="أدخل كلمة المرور">
+        </div>
+
+        <button id="actionBtn" onclick="handleAuth()" style="margin-top: 15px;">دخول اللوحة 💻</button>
+    </div>
+
+    <script>
+        // كود تفعيل السيستم السري الخاص بك لحماية أرباحك
+        const MINA_SECRET_KEY = "MINA-COVER-CASH-2026";
+
+        // التحقق الذكي: هل تم تفعيل الصالون مسبقاً على هذا الجهاز؟
+        let hasAccount = localStorage.getItem("barberUsername") !== null;
+
+        // إذا كان أول مرة يفتح السيستم، نطلب كود التفعيل والبيانات الجديدة
+        if (!hasAccount) {
+            document.getElementById("loginTitle").innerText = "تهيئة صالون جديد ✂️";
+            document.getElementById("loginNote").innerText = "تنبيه: هذا السيستم محمي بحقوق الملكية. يرجى إدخال كود التفعيل والبيانات المخصصة لصالونك.";
+            document.getElementById("activationArea").style.display = "block";
+            document.getElementById("userLabel").innerText = "اسم المستخدم الجديد:";
+            document.getElementById("passLabel").innerText = "كلمة المرور الجديدة:";
+            document.getElementById("actionBtn").innerText = "تفعيل السيستم وإنشاء الحساب 🚀";
+        }
+
+        function handleAuth() {
+            let user = document.getElementById("username").value.trim();
+            let pass = document.getElementById("password").value.trim();
+
+            if (user === "" || pass === "") {
+                alert("من فضلك املأ البيانات أولاً!");
+                return;
+            }
+
+            if (!hasAccount) {
+                // خطوة التفعيل لأول مرة
+                let enteredKey = document.getElementById("activationKey").value.trim();
+                if (enteredKey !== MINA_SECRET_KEY) {
+                    alert("❌ كود التفعيل غير صحيح! السيستم محمي. يرجى التواصل مع إدارة Cover Cash Store لدفع الاشتراك وتفعيل حسابك.");
+                    return;
+                }
+
+                localStorage.setItem("barberUsername", user);
+                localStorage.setItem("barberPassword", pass);
+                alert("✅ تم التحقق من الدفع وتفعيل السيستم بنجاح! يمكنك الآن تسجيل الدخول بحسابك.");
+                hasAccount = true;
+                location.reload(); 
+            } else {
+                // تسجيل الدخول المعتاد للحلاق
+                let savedUser = localStorage.getItem("barberUsername");
+                let savedPass = localStorage.getItem("barberPassword");
+
+                if (user === savedUser && pass === savedPass) {
+                    sessionStorage.setItem("isLoggedIn", "true");
+                    
+                    // طلب إذن الإشعارات فور الدخول الصحيح لتهيئة المتصفح على السيرفر المرفوع
+                    if ("Notification" in window) {
+                        Notification.requestPermission();
+                    }
+                    
+                    window.location.href = "admin.html";
+                } else {
+                    alert("❌ البيانات غير صحيحة! رجاء المحاولة مرة أخرى.");
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>

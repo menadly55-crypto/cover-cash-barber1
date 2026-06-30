@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم الصالون ✂️</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="card" style="max-width: 750px; width: 100%;">
+        <h2>لوحة تحكم الحلاق 💻 (<span id="barberNameTitle" style="color:#d4af37;"></span>)</h2>
+        <p class="note">إدارة اشتراكات وزيارات عملائك المشتركين فقط</p>
+        
+        <hr class="divider">
+
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>رقم الهاتف</th>
+                    <th>الزيارات</th>
+                    <th>التحكم</th>
+                </tr>
+            </thead>
+            <tbody id="clientsTableBody">
+            </tbody>
+        </table>
+
+        <hr class="divider">
+
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="copyBarberLink()" style="background-color: #d4af37 !important; color: #121212; font-weight: bold; padding: 10px 20px;">
+                📋 نسخ رابط التسجيل الخاص بزبائني
+            </button>
+            <p id="copyMessage" style="color: #28a745; font-size: 14px; margin-top: 8px; display: none;">✅ تم نسخ الرابط المخصص لصالونك بنجاح!</p>
+        </div>
+    </div>
+
+    <script>
+        // 🔐 كود التأمين: التحقق من تسجيل الدخول أولاً
+        if (sessionStorage.getItem("isLoggedIn") !== "true") {
+            window.location.href = "login.html";
+        }
+
+        // معرفة الحلاق الحالي اللي مسجل دخول
+        let currentBarber = localStorage.getItem("barberUsername") || "default_barber";
+        document.getElementById("barberNameTitle").innerText = currentBarber;
+        let storageKey = `clients_${currentBarber}`;
+
+        function loadClients() {
+            let clients = JSON.parse(localStorage.getItem(storageKey)) || [];
+            let tableBody = document.getElementById("clientsTableBody");
+            tableBody.innerHTML = ""; 
+
+            if(clients.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">لا يوجد عملاء مشتركين في صالونك بعد.</td></tr>`;
+                return;
+            }
+
+            clients.forEach((client, index) => {
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${client.name}</td>
+                        <td>${client.phone}</td>
+                        <td><span class="badge" style="background-color: ${client.visits == 8 ? '#28a745' : '#d4af37'}">${client.visits}</span> / 8</td>
+                        <td>
+                            <button onclick="addVisit(${index})" class="btn-visit" style="background-color:#28a745 !important;">+ زيارة</button>
+                            <button onclick="resetCard(${index})" class="btn-reset" style="background-color:#dc3545 !important;">تصفير</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // 🔥 دالة توليد ونسخ الرابط المخصص للزبائن (تم التوجيه لصفحة التسجيل register.html)
+        function copyBarberLink() {
+            // الرابط يوجه العميل مباشرة لصفحة تسجيل العضوية الصحيحة للزبون
+            let fullLink = `https://menadly55-crypto.github.io/cover-cash-barber/register.html?barber=${currentBarber}`;
+            
+            // نسخ الرابط للحافظة
+            navigator.clipboard.writeText(fullLink).then(() => {
+                let msg = document.getElementById("copyMessage");
+                msg.style.display = "block";
+                setTimeout(() => { msg.style.display = "none"; }, 3000); 
+            });
+        }
+
+        function addVisit(index) {
+            let clients = JSON.parse(localStorage.getItem(storageKey)) || [];
+            if (clients[index].visits < 8) {
+                clients[index].visits += 1;
+                clients[index].lastVisitDate = new Date().toISOString();
+                
+                localStorage.setItem(storageKey, JSON.stringify(clients));
+                loadClients();
+
+                if(clients[index].visits === 8) {
+                    alert(`🎉 مبروك! العميل (${clients[index].name}) وصل للزيارة الثامنة واستحق الحلاقة المجانية!`);
+                }
+            } else {
+                alert("العميل استهلك الـ 8 زيارات بالفعل، يجب تصفير الكارت.");
+            }
+        }
+
+        function resetCard(index) {
+            let clients = JSON.parse(localStorage.getItem(storageKey)) || [];
+            if(confirm(`هل أنت متأكد من تصفير كارت العميل ${clients[index].name}؟`)) {
+                clients[index].visits = 0;
+                clients[index].lastVisitDate = null;
+                localStorage.setItem(storageKey, JSON.stringify(clients));
+                loadClients();
+            }
+        }
+
+        loadClients();
+    </script>
+</body>
+</html>
